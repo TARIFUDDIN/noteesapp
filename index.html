@@ -88,111 +88,128 @@
 </head>
 <body>
   <h1>Notes App</h1>
-  
   <form id="note-form">
-    <div class="error" id="error-message"></div> 
+    <div class="error" id="error-message"></div>
     <label for="title">Title:</label>
     <input type="text" id="title" name="title" required>
     <label for="content">Content:</label>
     <textarea id="content" name="content" required></textarea>
-    
     <button type="submit">Add Note</button>
   </form>
   <div class="loading" id="loading">Loading notes...</div>
   <div id="notes-container" class="notes-container"></div>
+
   <script>
-    const API_URL = 'http://localhost:3000/api/notes';
-    const noteForm = document.getElementById('note-form');
-    const notesContainer = document.getElementById('notes-container');
-    const errorMessage = document.getElementById('error-message');
-    const loadingIndicator = document.getElementById('loading');
+    const api_url = 'http://localhost:3000/api/notes'
+    const noteForm = document.getElementById('note-form')
+    const notesContainer = document.getElementById('notes-container')
+    const errorMessage = document.getElementById('error-message')
+    const loadingIndicator = document.getElementById('loading')
+
     async function fetchNotes() {
-      loadingIndicator.style.display = 'block';
+      loadingIndicator.style.display = 'block'
       try {
-        const response = await fetch(API_URL);
+        const response = await fetch(api_url)
         if (!response.ok) {
-          throw new Error('Failed to fetch notes');
+          throw new Error('Failed to fetch notes')
         }
-        const notes = await response.json();
-        displayNotes(notes);
+        const notes = await response.json()
+        displayNotes(notes)
       } catch (error) {
-        showError('Could not load notes: ' + error.message);
+        showError('Could not load notes: ' + error.message)
       } finally {
-        loadingIndicator.style.display = 'none';
+        loadingIndicator.style.display = 'none'
       }
     }
+
     function displayNotes(notes) {
-      notesContainer.innerHTML = '';
+      notesContainer.innerHTML = ''
       if (notes.length === 0) {
-        notesContainer.innerHTML = '<p>No notes yet. Add your first note above!</p>';
-        return;
+        notesContainer.innerHTML = '<p>No notes yet. Add your first note above!</p>'
+        return
       }
+      
       notes.forEach(note => {
-        const noteElement = document.createElement('div');
-   noteElement.className = 'note';
-         const titleElement = document.createElement('h3');
-     titleElement.textContent = note.title;
-       noteElement.appendChild(titleElement);
-   const contentElement = document.createElement('p');
-     contentElement.textContent = note.content; 
-   noteElement.appendChild(contentElement);
-     const deleteButton = document.createElement('button');
-  deleteButton.className = 'delete';
-     deleteButton.textContent = 'Delete';
- deleteButton.setAttribute('data-id', note.id);
- deleteButton.addEventListener('click', deleteNote); 
-    noteElement.appendChild(deleteButton);
-       notesContainer.appendChild(noteElement);
-      });
+        const noteElement = document.createElement('div')
+        noteElement.className = 'note'
+        
+        const titleElement = document.createElement('h3')
+        titleElement.textContent = note.title
+        noteElement.appendChild(titleElement)
+        
+        const contentElement = document.createElement('p')
+        contentElement.textContent = note.content
+        noteElement.appendChild(contentElement)
+        
+        const deleteButton = document.createElement('button')
+        deleteButton.className = 'delete'
+        deleteButton.textContent = 'Delete'
+        deleteButton.setAttribute('data-id', note.id)
+        deleteButton.addEventListener('click', deleteNote)
+        noteElement.appendChild(deleteButton)
+        
+        notesContainer.appendChild(noteElement)
+      })
     }
+    
     async function addNote(event) {
-      event.preventDefault();
-      errorMessage.textContent = '';
-const titleInput = document.getElementById('title');
-const contentInput = document.getElementById('content');
-  const title = titleInput.value.trim();
-      const content = contentInput.value.trim();
+      event.preventDefault()
+      errorMessage.textContent = ''
+      
+      const titleInput = document.getElementById('title')
+      const contentInput = document.getElementById('content')
+      const title = titleInput.value.trim()
+      const content = contentInput.value.trim()
+      
       if (!title || !content) {
-        showError('Title and content are required');
-        return;
+        showError('Title and content are required')
+        return
       }
+      
       try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(api_url, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ title, content })
-        });
+        })
+        
         if (!response.ok) {
-          throw new Error('Failed to add note');
+          throw new Error('Failed to add note')
         }
-        titleInput.value = '';
-        contentInput.value = '';
-        fetchNotes();
+        
+        titleInput.value = ''
+        contentInput.value = ''
+        fetchNotes()
       } catch (error) {
-        showError('Error adding note: ' + error.message);
+        showError('Error adding note: ' + error.message)
       }
     }
+    
     async function deleteNote(event) {
-      const id = event.target.getAttribute('data-id');
+      const id = event.target.getAttribute('data-id')
       try {
-        const response = await fetch(`${API_URL}/${id}`, {
+        const response = await fetch(`${api_url}/${id}`, {
           method: 'DELETE'
-        });
+        })
+        
         if (!response.ok) {
-          throw new Error('Failed to delete note');
+          throw new Error('Failed to delete note')
         }
-fetchNotes();
-} catch (error) {
-        showError('Error deleting note: ' + error.message);
+        
+        fetchNotes()
+      } catch (error) {
+        showError('Error deleting note: ' + error.message)
       }
     }
-function showError(message) {
-      errorMessage.textContent = message;
+    
+    function showError(message) {
+      errorMessage.textContent = message
     }
-    Formnote.addEventListener('submit', addNote);
-    fetchNotes();
+    
+    noteForm.addEventListener('submit', addNote)
+    fetchNotes()
   </script>
 </body>
 </html>
