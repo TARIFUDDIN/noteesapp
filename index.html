@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    form {
+      background-color: #f5f5f5;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    button.delete {
+      background-color: #f44336;
+      margin-top: 10px;
+    }
+    button.delete:hover {
+      background-color: #d32f2f;
+    }
+    .notes-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    .note {
+      background-color: #fff8dc;
+      padding: 15px;
+      border-radius: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .note h3 {
+      margin-top: 0;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 10px;
+    }
+    .note p {
+      margin-top: 10px;
+      white-space: pre-wrap;
+    }
+    .error {
+      color: #f44336;
+      margin-bottom: 15px;
+    }
+    .loading {
+      text-align: center;
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Notes App</h1>
+  
+  <form id="note-form">
+    <div class="error" id="error-message"></div> 
+    <label for="title">Title:</label>
+    <input type="text" id="title" name="title" required>
+    <label for="content">Content:</label>
+    <textarea id="content" name="content" required></textarea>
+    
+    <button type="submit">Add Note</button>
+  </form>
+  <div class="loading" id="loading">Loading notes...</div>
+  <div id="notes-container" class="notes-container"></div>
+  <script>
+    const API_URL = 'http://localhost:3000/api/notes';
+    const noteForm = document.getElementById('note-form');
+    const notesContainer = document.getElementById('notes-container');
+    const errorMessage = document.getElementById('error-message');
+    const loadingIndicator = document.getElementById('loading');
+    async function fetchNotes() {
+      loadingIndicator.style.display = 'block';
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error('Failed to fetch notes');
+        }
+        const notes = await response.json();
+        displayNotes(notes);
+      } catch (error) {
+        showError('Could not load notes: ' + error.message);
+      } finally {
+        loadingIndicator.style.display = 'none';
+      }
+    }
+    function displayNotes(notes) {
+      notesContainer.innerHTML = '';
+      if (notes.length === 0) {
+        notesContainer.innerHTML = '<p>No notes yet. Add your first note above!</p>';
+        return;
+      }
+      notes.forEach(note => {
+        const noteElement = document.createElement('div');
+   noteElement.className = 'note';
+         const titleElement = document.createElement('h3');
+     titleElement.textContent = note.title;
+       noteElement.appendChild(titleElement);
+   const contentElement = document.createElement('p');
+     contentElement.textContent = note.content; 
+   noteElement.appendChild(contentElement);
+     const deleteButton = document.createElement('button');
+  deleteButton.className = 'delete';
+     deleteButton.textContent = 'Delete';
+ deleteButton.setAttribute('data-id', note.id);
+ deleteButton.addEventListener('click', deleteNote); 
+    noteElement.appendChild(deleteButton);
+       notesContainer.appendChild(noteElement);
+      });
+    }
+    async function addNote(event) {
+      event.preventDefault();
+      errorMessage.textContent = '';
+const titleInput = document.getElementById('title');
+const contentInput = document.getElementById('content');
+  const title = titleInput.value.trim();
+      const content = contentInput.value.trim();
+      if (!title || !content) {
+        showError('Title and content are required');
+        return;
+      }
+      try {
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ title, content })
+        });
+        if (!response.ok) {
+          throw new Error('Failed to add note');
+        }
+        titleInput.value = '';
+        contentInput.value = '';
+        fetchNotes();
+      } catch (error) {
+        showError('Error adding note: ' + error.message);
+      }
+    }
+    async function deleteNote(event) {
+      const id = event.target.getAttribute('data-id');
+      try {
+        const response = await fetch(`${API_URL}/${id}`, {
+          method: 'DELETE'
+        });
+        if (!response.ok) {
+          throw new Error('Failed to delete note');
+        }
+fetchNotes();
+} catch (error) {
+        showError('Error deleting note: ' + error.message);
+      }
+    }
+function showError(message) {
+      errorMessage.textContent = message;
+    }
+    Formnote.addEventListener('submit', addNote);
+    fetchNotes();
+  </script>
+</body>
+</html>
